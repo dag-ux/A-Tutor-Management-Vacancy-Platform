@@ -1,115 +1,55 @@
 // app/(auth)/login/page.tsx
-"use client";
+import Link from "next/link";
+import ThemeToggle from "@/app/components/ThemeToggle";
+import AuthForm from "@/app/components/AuthForm";
+import { GraduationCap, ArrowLeft } from "lucide-react";
 
-import { useState } from "react";
-import { authClient } from "@/lib/auth-client";
-import { useRouter } from "next/navigation";
-
-export default function AuthPage() {
-  const [isLogin, setIsLogin] = useState(true);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
-  const [role, setRole] = useState<"PARENT" | "TUTOR">("PARENT");
-  const [error, setError] = useState("");
-  const router = useRouter();
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-
-    if (isLogin) {
-      const { error } = await authClient.signIn.email({ email, password });
-      if (error) return setError(error.message || "Login failed");
-    } else {
-      const { error } = await authClient.signUp.email({
-        email,
-        password,
-        name,
-        role, // Pass the custom field
-      });
-      if (error) return setError(error.message || "Signup failed");
-    }
-
-    // Redirect to dashboard on success
-    router.push("/dashboard");
-  };
-
+export default function LoginPage() {
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-      <div className="w-full max-w-md bg-white rounded-lg shadow-md p-8">
-        <h1 className="text-2xl font-bold mb-6 text-gray-900">
-          {isLogin ? "Sign In" : "Create an Account"}
-        </h1>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {!isLogin && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Name</label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-                className="w-full px-3 py-2 border rounded-md text-gray-900"
-              />
+    <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-950 transition-colors duration-300">
+      <header className="w-full border-b border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-950/50 backdrop-blur-md">
+        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2 group">
+            <div className="bg-[#069494] p-1.5 rounded-lg text-white group-hover:scale-105 transition-transform">
+              <GraduationCap size={20} />
             </div>
-          )}
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full px-3 py-2 border rounded-md text-gray-900"
-            />
+            <span className="text-xl font-bold tracking-tight">A+ Tutor</span>
+          </Link>
+          <div className="flex items-center gap-4">
+            <ThemeToggle />
+            <Link href="/" className="text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:text-[#069494] flex items-center gap-1 transition">
+              <ArrowLeft size={16} /> Back to Home
+            </Link>
           </div>
+        </div>
+      </header>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={8}
-              className="w-full px-3 py-2 border rounded-md text-gray-900"
-            />
-          </div>
-
-          {!isLogin && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700">I am a</label>
-              <select
-                value={role}
-                onChange={(e) => setRole(e.target.value as "PARENT" | "TUTOR")}
-                className="w-full px-3 py-2 border rounded-md text-gray-900"
-              >
-                <option value="PARENT">Parent</option>
-                <option value="TUTOR">Tutor</option>
-              </select>
+      <main className="flex-1 flex items-center justify-center p-4 lg:p-8">
+        <div className="w-full max-w-5xl bg-white dark:bg-zinc-900 rounded-3xl shadow-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden grid lg:grid-cols-2">
+          <div className="hidden lg:flex flex-col justify-between relative bg-zinc-950 p-12 overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-full bg-[#069494] opacity-20 blur-[120px] rounded-full translate-y-[-20%] translate-x-[-20%] pointer-events-none"></div>
+            <div className="absolute bottom-0 right-0 w-full h-full bg-teal-500 opacity-10 blur-[100px] rounded-full translate-y-[20%] translate-x-[20%] pointer-events-none"></div>
+            
+            <div className="relative z-10">
+              <div className="bg-[#069494] w-12 h-12 rounded-xl flex items-center justify-center text-white mb-6 shadow-lg shadow-[#069494]/30">
+                <GraduationCap size={28} />
+              </div>
+              <h2 className="text-3xl font-bold text-white mb-4">Unlock Your Academic Potential.</h2>
+              <p className="text-zinc-400 text-lg leading-relaxed">
+                Join thousands of parents and tutors managing their educational journey in one seamless platform.
+              </p>
             </div>
-          )}
+          </div>
+          
+          <div className="p-8 sm:p-12 lg:p-16 flex flex-col justify-center">
+            <AuthForm defaultIsLogin={true} />
+          </div>
+        </div>
+      </main>
 
-          {error && <div className="text-red-500 text-sm">{error}</div>}
-
-          <button
-            type="submit"
-            className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700"
-          >
-            {isLogin ? "Sign In" : "Sign Up"}
-          </button>
-        </form>
-
-        <button
-          onClick={() => setIsLogin(!isLogin)}
-          className="mt-4 text-sm text-blue-600 hover:underline w-full text-center"
-        >
-          {isLogin ? "Need an account? Sign up" : "Already have an account? Sign in"}
-        </button>
-      </div>
-    </main>
+      <footer className="w-full py-6 text-center border-t border-zinc-200 dark:border-zinc-800">
+        <p className="text-sm text-zinc-500">© 2026 A+ Tutor Management. All rights reserved.</p>
+      </footer>
+    </div>
   );
 }
