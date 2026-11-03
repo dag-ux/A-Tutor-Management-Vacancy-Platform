@@ -83,15 +83,19 @@ model Vacancy {
 }
 
 model Application {
-  id         String            @id @default(cuid())
-  status     ApplicationStatus @default(PENDING)
-  vacancyId  String
-  vacancy    Vacancy           @relation(fields: [vacancyId], references: [id])
-  tutorId    String
-  tutor      User              @relation(fields: [tutorId], references: [id])
-  assignment Assignment?
-  createdAt  DateTime          @default(now())
-  updatedAt  DateTime          @updatedAt
+  id          String            @id @default(cuid())
+  status      ApplicationStatus @default(PENDING)
+  vacancyId   String
+  vacancy     Vacancy           @relation(fields: [vacancyId], references: [id])
+  tutorId     String
+  tutor       User              @relation(fields: [tutorId], references: [id])
+  assignment  Assignment?
+  
+  phoneNumber String?           // <-- ADD THIS
+  coverLetter String?           // <-- This should already be here
+  
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
 }
 
 model Assignment {
