@@ -6,6 +6,7 @@ import Link from "next/link";
 import ThemeToggle from "@/app/components/ThemeToggle";
 import SignOutButton from "@/app/components/SignOutButton";
 import SidebarNav from "@/app/components/SidebarNav";
+import MobileSidebar from "@/app/components/MobileSidebar";
 import { GraduationCap, ChevronDown } from "lucide-react";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -17,10 +18,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col md:flex-row transition-colors duration-300">
       
-      {/* SIDEBAR */}
-      <aside className="w-full md:w-64 bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800 flex flex-col hidden md:flex h-screen sticky top-0">
-        
-        {/* Logo */}
+      {/* DESKTOP SIDEBAR (Hidden on Mobile) */}
+      <aside className="w-full md:w-64 bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800 flex-col hidden md:flex h-screen sticky top-0">
         <div className="h-20 flex items-center px-6 border-b border-zinc-200 dark:border-zinc-800">
           <Link href="/" className="flex items-center gap-2">
             <div className="bg-[#069494] p-1.5 rounded-lg text-white shadow-sm">
@@ -29,13 +28,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
             <span className="text-xl font-bold tracking-tight">A+ Tutor</span>
           </Link>
         </div>
-
-        {/* Navigation Links */}
         <div className="flex-1 overflow-y-auto">
           <SidebarNav role={session.user.role} />
         </div>
-
-        {/* Sidebar Bottom: Just the Sign Out */}
         <div className="p-4 border-t border-zinc-200 dark:border-zinc-800">
           <SignOutButton />
         </div>
@@ -43,18 +38,18 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
       {/* MAIN CONTENT AREA */}
       <div className="flex-1 flex flex-col min-h-screen">
-        
-        {/* TOP NAVBAR */}
-        <header className="h-20 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between px-6 sticky top-0 z-10">
-          <div className="hidden md:block">
-            <h2 className="text-zinc-500 dark:text-zinc-400 text-sm">Welcome back to your dashboard</h2>
+        <header className="h-20 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between px-6 sticky top-0 z-50">
+          
+          {/* Mobile Header Left: Hamburger Menu */}
+          <div className="flex items-center gap-4">
+            <MobileSidebar role={session.user.role} name={session.user.name} />
+            <h2 className="hidden md:block text-zinc-500 dark:text-zinc-400 text-sm">Welcome back to your dashboard</h2>
           </div>
           
           {/* Right Side: User Profile & Theme */}
           <div className="flex items-center gap-4">
             <ThemeToggle />
             
-            {/* The User Profile moved to Navbar */}
             <div className="flex items-center gap-3 pl-4 border-l border-zinc-200 dark:border-zinc-800">
               <div className="relative hidden sm:block">
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#069494] to-teal-700 flex items-center justify-center text-white font-bold text-sm shadow-md">

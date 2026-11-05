@@ -2,14 +2,44 @@
 import Link from "next/link";
 import Image from "next/image";
 import ThemeToggle from "./components/ThemeToggle";
-import { BookOpen, GraduationCap, Users, CheckCircle, ArrowRight, Star, MonitorPlay } from "lucide-react";
+import WriteReviewModal from "./components/WriteReviewModal";
+import { prisma } from "@/lib/prisma";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
+import { 
+  GraduationCap, 
+  Users, 
+  CheckCircle, 
+  ArrowRight, 
+  Star, 
+  MapPin, 
+  Banknote, 
+  Briefcase,
+  TrendingUp,
+  Clock,
+  ShieldCheck,
+  FileText,
+  UserCheck
+} from "lucide-react";
 
-export default function Home() {
+export default async function Home() {
+  const session = await auth.api.getSession({ headers: await headers() });
+
+  const recentJobs = await prisma.vacancy.findMany({
+    where: { isOpen: true },
+    orderBy: { createdAt: "desc" },
+    take: 3,
+  });
+
+  const reviews = await prisma.review.findMany({
+    orderBy: { createdAt: "desc" },
+    take: 3,
+  });
+
   return (
-    // Added light mode background and text colors
     <div className="min-h-screen bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50 font-sans selection:bg-[#069494] selection:text-white transition-colors duration-300">
       
-      {/* 1. NAVBAR (Glassmorphism) */}
+      {/* 1. NAVBAR */}
       <header className="fixed top-0 w-full z-50 backdrop-blur-md bg-white/70 dark:bg-zinc-950/70 border-b border-zinc-200 dark:border-zinc-800/50 transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 group">
@@ -20,187 +50,232 @@ export default function Home() {
           </Link>
           
           <nav className="hidden md:flex gap-8 text-sm font-medium text-zinc-600 dark:text-zinc-400">
-            <Link href="#home" className="hover:text-black dark:hover:text-white transition">Home</Link>
-            <Link href="#about" className="hover:text-black dark:hover:text-white transition">About Us</Link>
+            <Link href="#how-it-works" className="hover:text-black dark:hover:text-white transition">Home</Link>
+            <Link href="#jobs" className="hover:text-black dark:hover:text-white transition">Find Jobs</Link>
             <Link href="#reviews" className="hover:text-black dark:hover:text-white transition">Reviews</Link>
-            <Link href="#contact" className="hover:text-black dark:hover:text-white transition">Contact</Link>
           </nav>
 
           <div className="flex items-center gap-6">
             <ThemeToggle />
-            <Link href="/register" className="text-sm font-medium text-zinc-600 dark:text-zinc-300 hover:text-[#069494] dark:hover:text-[#069494] transition hidden md:block">
-              Sign In
+            <Link href={session ? "/dashboard" : "/login"} className="text-sm font-medium text-zinc-600 dark:text-zinc-300 hover:text-[#069494] dark:hover:text-[#069494] transition hidden md:block">
+              {session ? "Dashboard" : "Sign In"}
             </Link>
-            <Link href="/login" className="bg-[#069494] hover:bg-[#057a7a] text-white px-5 py-2.5 rounded-full text-sm font-semibold transition shadow-[0_0_20px_rgba(6,148,148,0.2)]">
-              Get Started
+            <Link href={session ? "/dashboard" : "/register"} className="bg-[#069494] hover:bg-[#057a7a] text-white px-5 py-2.5 rounded-full text-sm font-semibold transition shadow-[0_0_20px_rgba(6,148,148,0.2)]">
+              {session ? "Go to App" : "Get Started"}
             </Link>
           </div>
         </div>
       </header>
 
-      {/* 2. HERO SECTION (Glowing Mesh Gradient) */}
-      <section id="home" className="relative flex items-center justify-center pt-40 pb-32 overflow-hidden min-h-[90vh]">
-        {/* The Glowing Background Effect */}
+      {/* 2. HERO SECTION (Balanced for Parents and Tutors) */}
+      <section id="home" className="relative flex items-center justify-center pt-40 pb-24 overflow-hidden">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-[#069494] rounded-[100%] blur-[150px] opacity-10 dark:opacity-20 pointer-events-none transition-opacity duration-300"></div>
-        <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-teal-500 rounded-full blur-[120px] opacity-5 dark:opacity-10 pointer-events-none transition-opacity duration-300"></div>
-
-        <div className="relative z-10 max-w-4xl mx-auto px-4 text-center space-y-8">
+        
+        <div className="relative z-10 max-w-5xl mx-auto px-4 text-center space-y-8">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#069494]/30 bg-[#069494]/10 text-[#069494] text-xs font-semibold tracking-wide uppercase">
             <span className="w-2 h-2 rounded-full bg-[#069494] animate-pulse"></span>
-            Elevate Your Learning Experience
+            The #1 Tutoring Marketplace
           </div>
           
           <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight leading-[1.1]">
-            Find the Perfect <br />
+            Connecting Brilliant Minds <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#069494] to-teal-600 dark:to-teal-300">
-              Tutor
-            </span> for Your Future
+              With Ambitious Students
+            </span>
           </h1>
           
-          <p className="text-lg md:text-xl text-zinc-600 dark:text-zinc-400 max-w-2xl mx-auto">
-            Connecting ambitious students with world-class educators. Join our platform to manage applications, discover opportunities, and achieve academic excellence.
+          <p className="text-lg md:text-xl text-zinc-600 dark:text-zinc-400 max-w-3xl mx-auto">
+            Are you a parent looking for the perfect tutor for your child? Or a graduate looking for flexible teaching work? You are in the right place.
           </p>
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-            <Link href="/login" className="w-full sm:w-auto flex items-center justify-center gap-2 bg-zinc-900 dark:bg-white text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-zinc-200 px-8 py-4 rounded-full font-bold transition">
-              Find a Tutor <ArrowRight size={18} />
+            {/* Parent CTA */}
+            <Link href={session ? "/dashboard/parent" : "/register"} className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#069494] text-white hover:bg-[#057a7a] px-8 py-4 rounded-full font-bold transition shadow-[0_8px_20px_rgba(6,148,148,0.3)]">
+              <Users size={18} /> I Need a Tutor (Parents)
             </Link>
-            <Link href="/login" className="w-full sm:w-auto flex items-center justify-center gap-2 bg-transparent border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-900 dark:text-white px-8 py-4 rounded-full font-bold transition">
-              Apply as Tutor
+            {/* Tutor CTA */}
+            <Link href={session ? "/dashboard/tutor" : "/register"} className="w-full sm:w-auto flex items-center justify-center gap-2 bg-zinc-900 dark:bg-white text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-zinc-200 px-8 py-4 rounded-full font-bold transition">
+              <Briefcase size={18} /> I Want to Teach (Tutors)
             </Link>
           </div>
         </div>
       </section>
 
-      {/* 3. TRUSTED BY / LOGOS */}
-      <div className="border-y border-zinc-200 dark:border-zinc-800/50 bg-zinc-50 dark:bg-zinc-950/50 py-8 transition-colors duration-300">
+      {/* 3. HOW IT WORKS (For Parents) */}
+      <section id="how-it-works" className="py-24 bg-zinc-50 dark:bg-zinc-900/30 border-y border-zinc-200 dark:border-zinc-800/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-2xl mx-auto mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">How It Works for Parents</h2>
+            <p className="text-zinc-600 dark:text-zinc-400">Finding the right tutor for your child is simple, secure, and transparent.</p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8 relative">
+            {/* Step 1 */}
+            <div className="text-center">
+              <div className="w-20 h-20 mx-auto bg-white dark:bg-zinc-900 rounded-full flex items-center justify-center border-4 border-zinc-50 dark:border-zinc-950 shadow-xl mb-6 relative z-10">
+                <FileText className="text-[#069494]" size={32} />
+              </div>
+              <h3 className="text-xl font-bold mb-2">1. Register & Request</h3>
+              <p className="text-zinc-600 dark:text-zinc-400 text-sm">Create a secure account, then submit a request detailing your child's subject, schedule, and budget.</p>
+            </div>
+
+            {/* Step 2 */}
+            <div className="text-center">
+              <div className="w-20 h-20 mx-auto bg-white dark:bg-zinc-900 rounded-full flex items-center justify-center border-4 border-zinc-50 dark:border-zinc-950 shadow-xl mb-6 relative z-10">
+                <ShieldCheck className="text-[#069494]" size={32} />
+              </div>
+              <h3 className="text-xl font-bold mb-2">2. We Vet the Tutors</h3>
+              <p className="text-zinc-600 dark:text-zinc-400 text-sm">Our admin team reviews applications and matches your request with the most qualified university graduates.</p>
+            </div>
+
+            {/* Step 3 */}
+            <div className="text-center">
+              <div className="w-20 h-20 mx-auto bg-white dark:bg-zinc-900 rounded-full flex items-center justify-center border-4 border-zinc-50 dark:border-zinc-950 shadow-xl mb-6 relative z-10">
+                <UserCheck className="text-[#069494]" size={32} />
+              </div>
+              <h3 className="text-xl font-bold mb-2">3. Get Contacted</h3>
+              <p className="text-zinc-600 dark:text-zinc-400 text-sm">Log back into your dashboard to instantly see your assigned tutor's name, email, and phone number.</p>
+            </div>
+
+            {/* Connecting Line (Desktop Only) */}
+            <div className="hidden md:block absolute top-10 left-[20%] right-[20%] h-0.5 bg-zinc-200 dark:bg-zinc-800 -z-0"></div>
+          </div>
+        </div>
+      </section>
+
+      {/* 4. TRUSTED BY UNIVERSITIES */}
+      <div className="py-16 bg-white dark:bg-zinc-950 transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 text-center">
-          <p className="text-sm text-zinc-500 mb-6 font-medium">TRUSTED BY STUDENTS FROM TOP UNIVERSITIES</p>
-          <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16 opacity-50 grayscale text-zinc-900 dark:text-zinc-100">
-            
-             <span className="text-xl font-bold font-serif">Addis Ababa University</span>
-             <span className="text-xl font-bold font-sans">Addis Ababa Science and Technology University</span>
-             <span className="text-xl font-bold font-mono">Haramaya University</span>
-             <span className="text-xl font-bold font-serif">Bahir Dar University</span>
-             <span className="text-xl font-bold font-sans">Jimma University</span>
+          <p className="text-sm text-zinc-500 mb-10 font-bold uppercase tracking-widest">Tutors from top universities</p>
+          <div className="flex flex-wrap justify-center items-start gap-8 md:gap-12">
+             {/* AAU */}
+             <div className="flex flex-col items-center gap-3 group">
+               <div className="w-20 h-20 bg-zinc-50 dark:bg-zinc-900 rounded-full p-2 shadow-sm border border-zinc-200 dark:border-zinc-800 flex items-center justify-center group-hover:scale-110 group-hover:border-[#069494]/50 transition-all duration-300">
+                 <Image src="/image/aau-logo.png" alt="Addis Ababa University" width={64} height={64} className="object-contain grayscale group-hover:grayscale-0 transition-all duration-300" />
+               </div>
+               <span className="text-xs md:text-sm font-bold text-zinc-700 dark:text-zinc-300 text-center w-24 leading-tight">Addis Ababa University</span>
+             </div>
+             {/* Adama */}
+             <div className="flex flex-col items-center gap-3 group">
+               <div className="w-20 h-20 bg-zinc-50 dark:bg-zinc-900 rounded-full p-2 shadow-sm border border-zinc-200 dark:border-zinc-800 flex items-center justify-center group-hover:scale-110 group-hover:border-[#069494]/50 transition-all duration-300">
+                 <Image src="/image/adama-logo.png" alt="Adama Science and Technology University" width={64} height={64} className="object-contain grayscale group-hover:grayscale-0 transition-all duration-300" />
+               </div>
+               <span className="text-xs md:text-sm font-bold text-zinc-700 dark:text-zinc-300 text-center w-24 leading-tight">Adama Science & Tech</span>
+             </div>
+             {/* Bahir Dar */}
+             <div className="flex flex-col items-center gap-3 group">
+               <div className="w-20 h-20 bg-zinc-50 dark:bg-zinc-900 rounded-full p-2 shadow-sm border border-zinc-200 dark:border-zinc-800 flex items-center justify-center group-hover:scale-110 group-hover:border-[#069494]/50 transition-all duration-300">
+                 <Image src="/image/bahirdar.png" alt="Bahir Dar University" width={64} height={64} className="object-contain grayscale group-hover:grayscale-0 transition-all duration-300" />
+               </div>
+               <span className="text-xs md:text-sm font-bold text-zinc-700 dark:text-zinc-300 text-center w-24 leading-tight">Bahir Dar University</span>
+             </div>
+             {/* Haramaya */}
+             <div className="flex flex-col items-center gap-3 group">
+               <div className="w-20 h-20 bg-zinc-50 dark:bg-zinc-900 rounded-full p-2 shadow-sm border border-zinc-200 dark:border-zinc-800 flex items-center justify-center group-hover:scale-110 group-hover:border-[#069494]/50 transition-all duration-300">
+                 <Image src="/image/haramaya.png" alt="Haramaya University" width={64} height={64} className="object-contain grayscale group-hover:grayscale-0 transition-all duration-300" />
+               </div>
+               <span className="text-xs md:text-sm font-bold text-zinc-700 dark:text-zinc-300 text-center w-24 leading-tight">Haramaya University</span>
+             </div>
+             {/* Jimma */}
+             <div className="flex flex-col items-center gap-3 group">
+               <div className="w-20 h-20 bg-zinc-50 dark:bg-zinc-900 rounded-full p-2 shadow-sm border border-zinc-200 dark:border-zinc-800 flex items-center justify-center group-hover:scale-110 group-hover:border-[#069494]/50 transition-all duration-300">
+                 <Image src="/image/jima.png" alt="Jimma University" width={64} height={64} className="object-contain grayscale group-hover:grayscale-0 transition-all duration-300" />
+               </div>
+               <span className="text-xs md:text-sm font-bold text-zinc-700 dark:text-zinc-300 text-center w-24 leading-tight">Jimma University</span>
+             </div>
           </div>
         </div>
       </div>
 
-      {/* 4. ABOUT / FEATURES (Bento Box Style) */}
-      <section id="about" className="py-32 relative">
+      {/* 5. RECENT JOBS PREVIEW */}
+      <section id="jobs" className="py-24 bg-zinc-50 dark:bg-zinc-900/30 border-y border-zinc-200 dark:border-zinc-800/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-16">
-            <h2 className="text-3xl md:text-5xl font-bold mb-4">Essential Attributes <br/>That Set Us Apart</h2>
-            <p className="text-zinc-600 dark:text-zinc-400 max-w-xl text-lg">
-              We provide a seamless ecosystem for parents, tutors, and administrators to connect and manage educational needs.
-            </p>
+          <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-4">
+            <div>
+              <h2 className="text-3xl md:text-5xl font-bold mb-4">Latest Tutoring Jobs</h2>
+              <p className="text-zinc-600 dark:text-zinc-400 max-w-xl text-lg">Real parents are looking for help right now. Browse the latest requests.</p>
+            </div>
+            <Link href="/vacancies" className="flex items-center gap-2 bg-zinc-900 dark:bg-white text-white dark:text-black px-6 py-3 rounded-xl font-bold hover:bg-zinc-800 dark:hover:bg-zinc-200 transition">
+              View All Jobs <ArrowRight size={18} />
+            </Link>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6">
-            {/* Big Feature Card */}
-            <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-8 md:p-12 relative overflow-hidden group hover:border-[#069494]/50 transition-colors">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-[#069494] blur-[100px] opacity-5 dark:opacity-10 group-hover:opacity-20 transition-opacity"></div>
-              <div className="w-14 h-14 bg-white dark:bg-zinc-800 rounded-2xl flex items-center justify-center mb-8 shadow-sm">
-                <Users className="text-[#069494]" size={28} />
-              </div>
-              <h3 className="text-2xl font-bold mb-4">Seamless Matching</h3>
-              <p className="text-zinc-600 dark:text-zinc-400 mb-8 leading-relaxed">
-                Our platform bridges the gap between parents seeking quality education and tutors looking for meaningful teaching opportunities.
-              </p>
-              <Image 
-                src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1471&q=80" 
-                alt="Tutoring session" 
-                width={600}
-                height={400}
-                className="rounded-xl border border-zinc-200 dark:border-zinc-700 w-full object-cover aspect-video grayscale group-hover:grayscale-0 transition-all duration-500"
-              />
+          {recentJobs.length === 0 ? (
+            <div className="text-center p-16 bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 border-dashed">
+              <Briefcase size={48} className="mx-auto text-zinc-300 mb-4" />
+              <h3 className="text-lg font-bold text-zinc-900 dark:text-white mb-2">No jobs posted yet</h3>
+              <p className="text-zinc-500">Check back soon. Parents are actively posting requests.</p>
             </div>
+          ) : (
+            <div className="grid md:grid-cols-3 gap-6">
+              {recentJobs.map((job) => (
+                <div key={job.id} className="bg-white dark:bg-zinc-900 p-8 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm hover:shadow-xl hover:border-[#069494]/50 transition-all duration-300 group flex flex-col">
+                  <div className="flex justify-between items-start mb-6">
+                    <div className="w-14 h-14 bg-[#069494]/10 text-[#069494] rounded-2xl flex items-center justify-center font-bold text-2xl group-hover:scale-110 transition-transform">
+                      {job.subject.charAt(0).toUpperCase()}
+                    </div>
+                    <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">
+                      Open
+                    </span>
+                  </div>
+                  <h3 className="font-bold text-xl mb-2 leading-tight">{job.title}</h3>
+                  <p className="text-sm text-zinc-500 mb-6 line-clamp-2 flex-1">{job.description}</p>
+                  
+                  <div className="space-y-2 mb-6">
+                    <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
+                      <MapPin size={16} className="text-zinc-400" /> {job.location}
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
+                      <Banknote size={16} className="text-zinc-400" /> {job.rate} ETB / hour
+                    </div>
+                  </div>
 
-            {/* Small Feature Cards */}
-            <div className="grid gap-6">
-              <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-8 group hover:border-[#069494]/50 transition-colors">
-                <div className="w-12 h-12 bg-white dark:bg-zinc-800 rounded-xl flex items-center justify-center mb-6 shadow-sm">
-                  <CheckCircle className="text-[#069494]" size={24} />
+                  <Link href={session ? `/dashboard/tutor?tab=vacancies` : `/login`} className="w-full block text-center bg-zinc-900 dark:bg-white text-white dark:text-black py-3 rounded-xl font-bold hover:bg-[#069494] dark:hover:bg-[#069494] hover:text-white transition-colors">
+                    Apply Now
+                  </Link>
                 </div>
-                <h3 className="text-xl font-bold mb-2">Vetted Tutors</h3>
-                <p className="text-zinc-600 dark:text-zinc-400 text-sm">Every tutor goes through a rigorous application process to ensure top-tier quality for your child.</p>
-              </div>
-              
-              <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-8 group hover:border-[#069494]/50 transition-colors">
-                <div className="w-12 h-12 bg-white dark:bg-zinc-800 rounded-xl flex items-center justify-center mb-6 shadow-sm">
-                  <MonitorPlay className="text-[#069494]" size={24} />
-                </div>
-                <h3 className="text-xl font-bold mb-2">Centralized Management</h3>
-                <p className="text-zinc-600 dark:text-zinc-400 text-sm">Track requests, view vacancies, and manage your dashboard all in one beautiful interface.</p>
-              </div>
+              ))}
             </div>
-          </div>
+          )}
         </div>
       </section>
 
-      {/* 5. REVIEWS SECTION */}
-      <section id="reviews" className="py-24 bg-zinc-50 dark:bg-zinc-900/30 transition-colors duration-300">
+      {/* 6. REVIEWS SECTION */}
+      <section id="reviews" className="py-24 bg-white dark:bg-zinc-950">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Reviews from Our Clients</h2>
-            <p className="text-zinc-600 dark:text-zinc-400">Hear what parents and tutors have to say about us.</p>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Success Stories</h2>
+            <p className="text-zinc-600 dark:text-zinc-400 mb-8">Hear from graduates and parents using our platform.</p>
+            <WriteReviewModal />
           </div>
-          <div className="grid md:grid-cols-3 gap-6">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-8 rounded-2xl shadow-sm">
-                <div className="flex text-[#069494] mb-4">
-                  <Star size={20} fill="currentColor" />
-                  <Star size={20} fill="currentColor" />
-                  <Star size={20} fill="currentColor" />
-                  <Star size={20} fill="currentColor" />
-                  <Star size={20} fill="currentColor" />
-                </div>
-                <p className="text-zinc-700 dark:text-zinc-300 mb-6 italic">"This platform made finding a math tutor for my daughter incredibly easy. The dashboard is so simple to use!"</p>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center font-bold text-sm">
-                    {i === 1 ? "SJ" : i === 2 ? "MK" : "AL"}
+          
+          {reviews.length === 0 ? (
+            <div className="text-center p-12 bg-zinc-50 dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800">
+              <p className="text-zinc-500">No reviews yet. Be the first to share your experience!</p>
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-3 gap-8">
+              {reviews.map((review) => (
+                <div key={review.id} className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-8 rounded-3xl shadow-sm relative">
+                  <div className="flex text-[#069494] mb-4">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} size={20} fill={i < review.rating ? "currentColor" : "none"} className={i < review.rating ? "text-[#069494]" : "text-zinc-300 dark:text-zinc-700"} />
+                    ))}
                   </div>
-                  <div>
-                    <h4 className="font-semibold text-sm">{i === 1 ? "Sarah J." : i === 2 ? "Michael K." : "Alice L."}</h4>
-                    <p className="text-xs text-zinc-500">{i === 1 ? "Parent" : "Tutor"}</p>
+                  <p className="text-zinc-700 dark:text-zinc-300 mb-6 text-lg">"{review.comment}"</p>
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#069494] to-teal-700 text-white flex items-center justify-center font-bold text-lg shadow-md">
+                      {review.userName.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-zinc-900 dark:text-white">{review.userName}</h4>
+                      <p className="text-sm text-zinc-500">{review.role}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* 6. CONTACT SECTION */}
-      <section id="contact" className="py-24 relative overflow-hidden">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#069494] rounded-full blur-[200px] opacity-5 dark:opacity-10 pointer-events-none transition-opacity duration-300"></div>
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-          <h2 className="text-3xl md:text-5xl font-bold mb-6">Ready to Get Started?</h2>
-          <p className="text-zinc-600 dark:text-zinc-400 mb-10 text-lg">
-            Join our community today and take the first step towards academic success or finding your next tutoring opportunity.
-          </p>
-          <div className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border border-zinc-200 dark:border-zinc-800 p-8 rounded-3xl shadow-xl">
-            <form className="space-y-4 text-left">
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-zinc-600 dark:text-zinc-400 mb-2">Name</label>
-                  <input type="text" className="w-full px-4 py-3 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-white focus:border-[#069494] focus:ring-1 focus:ring-[#069494] outline-none transition" placeholder="John Doe" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-zinc-600 dark:text-zinc-400 mb-2">Email</label>
-                  <input type="email" className="w-full px-4 py-3 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-white focus:border-[#069494] focus:ring-1 focus:ring-[#069494] outline-none transition" placeholder="john@example.com" />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-zinc-600 dark:text-zinc-400 mb-2">Message</label>
-                <textarea rows={3} className="w-full px-4 py-3 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-white focus:border-[#069494] focus:ring-1 focus:ring-[#069494] outline-none transition" placeholder="How can we help you?"></textarea>
-              </div>
-              <button type="button" className="w-full bg-[#069494] hover:bg-[#057a7a] text-white py-4 rounded-xl font-bold transition shadow-[0_0_20px_rgba(6,148,148,0.3)]">
-                Send Message
-              </button>
-            </form>
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -213,13 +288,13 @@ export default function Home() {
             </div>
             <span className="text-xl font-bold tracking-tight">A+ Tutor</span>
           </div>
-          <p className="text-zinc-500 text-sm">
-            © 2026 A+ Tutor Management. All rights reserved.
+          <p className="text-zinc-500 text-sm text-center">
+            © 2026 A+ Tutor Management. Empowering graduates, supporting parents.
           </p>
           <div className="flex gap-6 text-sm font-medium text-zinc-500">
             <Link href="#" className="hover:text-black dark:hover:text-white transition">Privacy</Link>
             <Link href="#" className="hover:text-black dark:hover:text-white transition">Terms</Link>
-            <Link href="#" className="hover:text-black dark:hover:text-white transition">Twitter</Link>
+            <Link href="#" className="hover:text-black dark:hover:text-white transition">Contact</Link>
           </div>
         </div>
       </footer>
