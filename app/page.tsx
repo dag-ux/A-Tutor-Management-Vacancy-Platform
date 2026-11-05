@@ -1,36 +1,36 @@
 // app/page.tsx
 import Link from "next/link";
 import Image from "next/image";
-import ThemeToggle from "./components/ThemeToggle";
+import PublicNavbar from "./components/PublicNavbar";
+import PublicFooter from "./components/PublicFooter";
 import WriteReviewModal from "./components/WriteReviewModal";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { 
-  GraduationCap, 
   Users, 
-  CheckCircle, 
   ArrowRight, 
   Star, 
   MapPin, 
   Banknote, 
   Briefcase,
-  TrendingUp,
-  Clock,
   ShieldCheck,
   FileText,
   UserCheck
 } from "lucide-react";
 
 export default async function Home() {
+  // 1. Check if a user is logged in
   const session = await auth.api.getSession({ headers: await headers() });
 
+  // 2. Fetch the 3 most recent open jobs
   const recentJobs = await prisma.vacancy.findMany({
     where: { isOpen: true },
     orderBy: { createdAt: "desc" },
     take: 3,
   });
 
+  // 3. Fetch the 3 most recent reviews
   const reviews = await prisma.review.findMany({
     orderBy: { createdAt: "desc" },
     take: 3,
@@ -39,35 +39,10 @@ export default async function Home() {
   return (
     <div className="min-h-screen bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50 font-sans selection:bg-[#069494] selection:text-white transition-colors duration-300">
       
-      {/* 1. NAVBAR */}
-      <header className="fixed top-0 w-full z-50 backdrop-blur-md bg-white/70 dark:bg-zinc-950/70 border-b border-zinc-200 dark:border-zinc-800/50 transition-colors duration-300">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="bg-[#069494] p-2 rounded-lg text-white group-hover:scale-105 transition-transform">
-              <GraduationCap size={24} />
-            </div>
-            <span className="text-2xl font-bold tracking-tight">A+ Tutor</span>
-          </Link>
-          
-          <nav className="hidden md:flex gap-8 text-sm font-medium text-zinc-600 dark:text-zinc-400">
-            <Link href="#how-it-works" className="hover:text-black dark:hover:text-white transition">Home</Link>
-            <Link href="#jobs" className="hover:text-black dark:hover:text-white transition">Find Jobs</Link>
-            <Link href="#reviews" className="hover:text-black dark:hover:text-white transition">Reviews</Link>
-          </nav>
+      {/* REUSABLE NAVBAR */}
+      <PublicNavbar />
 
-          <div className="flex items-center gap-6">
-            <ThemeToggle />
-            <Link href={session ? "/dashboard" : "/login"} className="text-sm font-medium text-zinc-600 dark:text-zinc-300 hover:text-[#069494] dark:hover:text-[#069494] transition hidden md:block">
-              {session ? "Dashboard" : "Sign In"}
-            </Link>
-            <Link href={session ? "/dashboard" : "/register"} className="bg-[#069494] hover:bg-[#057a7a] text-white px-5 py-2.5 rounded-full text-sm font-semibold transition shadow-[0_0_20px_rgba(6,148,148,0.2)]">
-              {session ? "Go to App" : "Get Started"}
-            </Link>
-          </div>
-        </div>
-      </header>
-
-      {/* 2. HERO SECTION (Balanced for Parents and Tutors) */}
+      {/* 1. HERO SECTION (Balanced for Parents and Tutors) */}
       <section id="home" className="relative flex items-center justify-center pt-40 pb-24 overflow-hidden">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-[#069494] rounded-[100%] blur-[150px] opacity-10 dark:opacity-20 pointer-events-none transition-opacity duration-300"></div>
         
@@ -101,7 +76,7 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* 3. HOW IT WORKS (For Parents) */}
+      {/* 2. HOW IT WORKS (For Parents) */}
       <section id="how-it-works" className="py-24 bg-zinc-50 dark:bg-zinc-900/30 border-y border-zinc-200 dark:border-zinc-800/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-16">
@@ -143,7 +118,7 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* 4. TRUSTED BY UNIVERSITIES */}
+      {/* 3. TRUSTED BY UNIVERSITIES (With Names and Real Logos) */}
       <div className="py-16 bg-white dark:bg-zinc-950 transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 text-center">
           <p className="text-sm text-zinc-500 mb-10 font-bold uppercase tracking-widest">Tutors from top universities</p>
@@ -187,7 +162,7 @@ export default async function Home() {
         </div>
       </div>
 
-      {/* 5. RECENT JOBS PREVIEW */}
+      {/* 4. RECENT JOBS PREVIEW */}
       <section id="jobs" className="py-24 bg-zinc-50 dark:bg-zinc-900/30 border-y border-zinc-200 dark:border-zinc-800/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-4">
@@ -240,7 +215,7 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* 6. REVIEWS SECTION */}
+      {/* 5. REVIEWS SECTION (Dynamic) */}
       <section id="reviews" className="py-24 bg-white dark:bg-zinc-950">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -279,25 +254,8 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* 7. FOOTER */}
-      <footer className="border-t border-zinc-200 dark:border-zinc-800 py-12 bg-white dark:bg-zinc-950 transition-colors duration-300">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="flex items-center gap-2">
-            <div className="bg-[#069494] p-1.5 rounded-md text-white">
-              <GraduationCap size={20} />
-            </div>
-            <span className="text-xl font-bold tracking-tight">A+ Tutor</span>
-          </div>
-          <p className="text-zinc-500 text-sm text-center">
-            © 2026 A+ Tutor Management. Empowering graduates, supporting parents.
-          </p>
-          <div className="flex gap-6 text-sm font-medium text-zinc-500">
-            <Link href="#" className="hover:text-black dark:hover:text-white transition">Privacy</Link>
-            <Link href="#" className="hover:text-black dark:hover:text-white transition">Terms</Link>
-            <Link href="#" className="hover:text-black dark:hover:text-white transition">Contact</Link>
-          </div>
-        </div>
-      </footer>
+      {/* REUSABLE FOOTER */}
+      <PublicFooter />
     </div>
   );
 }

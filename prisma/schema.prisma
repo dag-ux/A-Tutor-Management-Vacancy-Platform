@@ -7,7 +7,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  
 }
 
 enum Role {
@@ -28,8 +27,8 @@ enum ApplicationStatus {
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
-  password  String?  // <-- Changed to String? (optional)
-  role      Role     @default(PARENT) // <-- Added default
+  password  String?  
+  role      Role     @default(PARENT) 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -46,25 +45,54 @@ model User {
 }
 
 model TutorProfile {
-  id         String  @id @default(cuid())
-  bio        String?
-  hourlyRate Float?
-  userId     String  @unique
-  user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id             String  @id @default(cuid())
+  // Qualifications
+  university     String?
+  degree         String?
+  major          String?
+  experience     String?
+  bio            String?
+  hourlyRate     Float?
+  
+  // NEW: Needed to match the Parent's gender preference!
+  gender         String? // "Male" or "Female"
+
+  userId         String  @unique
+  user           User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model ParentRequest {
-  id         String   @id @default(cuid())
-  subject    String
-  gradeLevel String
-  location   String?
-  schedule   String?
-  budget     Float?
-  status     String   @default("PENDING")
-  parentId   String
-  parent     User     @relation(fields: [parentId], references: [id])
-  vacancy    Vacancy?
-  createdAt  DateTime @default(now())
+  id             String   @id @default(cuid())
+  
+  // Child Info
+  childName      String?
+  childAge       String?
+  gradeLevel     String
+  language       String   @default("English")
+  
+  // Academic Needs
+  subject        String
+  specificTopics String?
+  learningStyle  String? 
+  currentPerformance String? // e.g., "Scoring 60%", "Failing", "Needs exam prep"
+  
+  // Tutor Preference
+  genderPreference String @default("Any") // "Any", "Male", "Female"
+
+  // Logistics
+  location       String?
+  schedule       String?
+  mode           String   @default("Online") // "Online" or "In-Person"
+  duration       String?  // e.g., "Long-term", "Short-term"
+  
+  // Budget
+  budget         Float?
+  
+  status         String   @default("PENDING")
+  parentId       String
+  parent         User     @relation(fields: [parentId], references: [id])
+  vacancy        Vacancy?
+  createdAt      DateTime @default(now())
 }
 
 model Vacancy {
@@ -91,8 +119,8 @@ model Application {
   tutor       User              @relation(fields: [tutorId], references: [id])
   assignment  Assignment?
   
-  phoneNumber String?           // <-- ADD THIS
-  coverLetter String?           // <-- This should already be here
+  phoneNumber String?           
+  coverLetter String?           
   
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
@@ -104,6 +132,8 @@ model Assignment {
   application   Application @relation(fields: [applicationId], references: [id])
   assignedAt    DateTime    @default(now())
 }
+
+// --- Better Auth Models ---
 
 model Session {
   id        String   @id
@@ -152,13 +182,14 @@ model Verification {
   @@index([identifier])
   @@map("verification")
 }
-// Add this to the bottom of prisma/schema.prisma
+
+// --- Public Website Models ---
 
 model Review {
   id        String   @id @default(cuid())
   rating    Int      @default(5)
   comment   String
   userName  String
-  role      String   // e.g., "Parent" or "Tutor"
+  role      String   
   createdAt DateTime @default(now())
 }

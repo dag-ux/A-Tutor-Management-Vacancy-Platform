@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import CreateVacancyButton from "@/app/components/CreateVacancyButton";
-import ReviewButtons from "@/app/components/ReviewButtons"; // <-- Imported the new component
+import ReviewButtons from "@/app/components/ReviewButtons";
 import { 
   CheckCircle2, 
   Clock, 
@@ -14,7 +14,11 @@ import {
   Users, 
   Briefcase, 
   ShieldAlert,
-  FileText
+  FileText,
+  Globe,
+  Monitor,
+  BookOpen,
+  Target
 } from "lucide-react";
 
 export default async function AdminDashboard({
@@ -36,7 +40,7 @@ export default async function AdminDashboard({
       orderBy: { createdAt: "desc" },
       include: { 
         applications: {
-          include: { tutor: true } // <-- Fetch the Tutor's name and email!
+          include: { tutor: true } 
         } 
       },
     }),
@@ -127,7 +131,7 @@ export default async function AdminDashboard({
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div>
             <h1 className="text-3xl font-extrabold text-zinc-900 dark:text-white tracking-tight">Parent Requests</h1>
-            <p className="text-zinc-500 dark:text-zinc-400 mt-1">Review requests and convert them into public vacancies.</p>
+            <p className="text-zinc-500 dark:text-zinc-400 mt-1">Review detailed requests and convert them into public vacancies.</p>
           </div>
 
           {pendingRequests.length === 0 ? (
@@ -141,32 +145,70 @@ export default async function AdminDashboard({
           ) : (
             <div className="grid gap-6">
               {pendingRequests.map((req) => (
-                <div key={req.id} className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm hover:shadow-md transition p-6 md:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                <div key={req.id} className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm hover:shadow-md transition p-6 md:p-8">
                   
-                  {/* Request Info */}
-                  <div className="space-y-4 flex-1">
+                  {/* Request Header */}
+                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 border-b border-zinc-100 dark:border-zinc-800 pb-6">
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-[#069494]/10 text-[#069494] rounded-xl flex items-center justify-center font-bold text-xl">
+                      <div className="w-14 h-14 bg-[#069494]/10 text-[#069494] rounded-2xl flex items-center justify-center font-bold text-2xl">
                         {req.subject.charAt(0).toUpperCase()}
                       </div>
                       <div>
                         <h3 className="font-bold text-xl text-zinc-900 dark:text-white">{req.subject} - {req.gradeLevel}</h3>
-                        <p className="text-sm text-zinc-500">
-                          Requested by <span className="font-semibold">{req.parent.name}</span> ({req.parent.email})
+                        <p className="text-sm text-zinc-500 mt-1">
+                          Requested by <span className="font-semibold text-zinc-800 dark:text-zinc-200">{req.parent.name}</span> ({req.parent.email})
                         </p>
                       </div>
                     </div>
-                    <div className="flex flex-wrap gap-4 text-sm text-zinc-600 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-950 p-3 rounded-xl">
-                      <div className="flex items-center gap-2"><MapPin size={16} /> {req.location}</div>
-                      <div className="flex items-center gap-2"><Calendar size={16} /> {req.schedule}</div>
-                      <div className="flex items-center gap-2"><Banknote size={16} /> {req.budget} ETB/hr</div>
+                    <div className="w-full md:w-auto shrink-0">
+                      <CreateVacancyButton requestId={req.id} />
                     </div>
                   </div>
-                  
-                  {/* Action Button */}
-                  <div className="w-full md:w-auto">
-                    <CreateVacancyButton requestId={req.id} />
+
+                  {/* Details Grid */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-4">
+                    <div className="bg-zinc-50 dark:bg-zinc-950 p-3 rounded-xl border border-zinc-100 dark:border-zinc-800">
+                      <p className="text-zinc-500 text-xs mb-1 uppercase tracking-wider font-semibold">Child Info</p>
+                      <p className="font-bold text-zinc-900 dark:text-zinc-100">{req.childName || "N/A"} {req.childAge ? `(${req.childAge} yrs)` : ""}</p>
+                    </div>
+                    <div className="bg-zinc-50 dark:bg-zinc-950 p-3 rounded-xl border border-zinc-100 dark:border-zinc-800">
+                      <p className="text-zinc-500 text-xs mb-1 uppercase tracking-wider font-semibold">Tutor Pref.</p>
+                      <p className="font-bold text-[#069494]">{req.genderPreference} • {req.mode}</p>
+                    </div>
+                    <div className="bg-zinc-50 dark:bg-zinc-950 p-3 rounded-xl border border-zinc-100 dark:border-zinc-800">
+                      <p className="text-zinc-500 text-xs mb-1 uppercase tracking-wider font-semibold">Language</p>
+                      <p className="font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-1"><Globe size={14} className="text-zinc-400"/> {req.language}</p>
+                    </div>
+                    <div className="bg-zinc-50 dark:bg-zinc-950 p-3 rounded-xl border border-zinc-100 dark:border-zinc-800">
+                      <p className="text-zinc-500 text-xs mb-1 uppercase tracking-wider font-semibold">Logistics & Budget</p>
+                      <p className="font-bold text-zinc-900 dark:text-zinc-100">{req.location} • {req.budget} ETB/hr</p>
+                    </div>
                   </div>
+
+                  {/* Notes Section */}
+                  {(req.specificTopics || req.learningStyle || req.currentPerformance) && (
+                    <div className="bg-blue-50 dark:bg-blue-900/10 p-4 rounded-xl border border-blue-100 dark:border-blue-900/30 text-sm grid gap-2">
+                      {req.specificTopics && (
+                        <p className="text-blue-900 dark:text-blue-300 flex items-start gap-2">
+                          <BookOpen size={16} className="mt-0.5 shrink-0" /> 
+                          <span><strong className="font-bold">Specific Topics:</strong> {req.specificTopics}</span>
+                        </p>
+                      )}
+                      {req.currentPerformance && (
+                        <p className="text-blue-900 dark:text-blue-300 flex items-start gap-2">
+                          <Target size={16} className="mt-0.5 shrink-0" /> 
+                          <span><strong className="font-bold">Current Performance:</strong> {req.currentPerformance}</span>
+                        </p>
+                      )}
+                      {req.learningStyle && (
+                        <p className="text-blue-900 dark:text-blue-300 flex items-start gap-2">
+                          <Users size={16} className="mt-0.5 shrink-0" /> 
+                          <span><strong className="font-bold">Learning Style / Notes:</strong> {req.learningStyle}</span>
+                        </p>
+                      )}
+                    </div>
+                  )}
+
                 </div>
               ))}
             </div>
@@ -230,7 +272,7 @@ export default async function AdminDashboard({
                                 </div>
                                 <div>
                                   <p className="font-bold text-zinc-900 dark:text-white text-lg">{app.tutor.name}</p>
-                                  <p className="text-xs text-zinc-500">{app.tutor.email}</p>
+                                  <p className="text-xs text-zinc-500">{app.tutor.email} • {app.phoneNumber || "No phone"}</p>
                                 </div>
                               </div>
                               <span className={`text-xs font-bold px-3 py-1.5 rounded-full border ${

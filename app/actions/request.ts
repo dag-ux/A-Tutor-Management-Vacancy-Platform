@@ -20,11 +20,24 @@ export async function createParentRequest(
   if (!session) return { success: false, error: "You must be logged in." };
   if (session.user.role !== "PARENT") return { success: false, error: "Only parents can create requests." };
 
+  // Safely extract values and handle nulls/empties
   const raw = {
-    subject: formData.get("subject"),
+    childName: formData.get("childName") || undefined,
+    childAge: formData.get("childAge") || undefined,
     gradeLevel: formData.get("gradeLevel"),
+    language: formData.get("language") || "English",
+    
+    subject: formData.get("subject"),
+    specificTopics: formData.get("specificTopics") || undefined,
+    learningStyle: formData.get("learningStyle") || undefined,
+    currentPerformance: formData.get("currentPerformance") || undefined,
+    
+    genderPreference: formData.get("genderPreference") || "Any",
+    mode: formData.get("mode") || "Online",
+    
     location: formData.get("location"),
     schedule: formData.get("schedule"),
+    duration: formData.get("duration") || undefined,
     budget: formData.get("budget"),
   };
 
@@ -44,37 +57,22 @@ export async function createParentRequest(
     revalidatePath("/dashboard/parent");
     return { success: true, message: "Request created successfully!" };
   } catch (error) {
+    console.error("Request Error:", error);
     return { success: false, error: "Failed to create request." };
   }
 }
-// app/actions/request.ts (Add this to the bottom of the file)
 
+// Keep your cancelParentRequest function at the bottom...
 export async function cancelParentRequest(requestId: string) {
   const session = await auth.api.getSession({ headers: await headers() });
-  
-  if (!session || session.user.role !== "PARENT") {
-    return { success: false, error: "Unauthorized" };
-  }
+  if (!session || session.user.role !== "PARENT") return { success: false, error: "Unauthorized" };
 
   try {
-    // Find the request first to ensure the parent actually owns it
-    const request = await prisma.parentRequest.findUnique({
-      where: { id: requestId }
-    });
+    const request = await prisma.parentRequest.findUnique({ where: { id: requestId } });
+    if (!request || request.parentId !== session.user.id) return { success: false, error: "Request not found" };
+    if (request.status !== "PENDING") return { success: false, error: "Cannot cancel a processed request." };
 
-    if (!request || request.parentId !== session.user.id) {
-      return { success: false, error: "Request not found or unauthorized" };
-    }
-
-    // Only allow cancellation if it's still PENDING
-    if (request.status !== "PENDING") {
-      return { success: false, error: "Cannot cancel a request that is already processed." };
-    }
-
-    await prisma.parentRequest.delete({
-      where: { id: requestId }
-    });
-
+    await prisma.parentRequest.delete({ where: { id: requestId } });
     revalidatePath("/dashboard/parent");
     return { success: true };
   } catch (error) {
